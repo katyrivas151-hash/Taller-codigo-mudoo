@@ -1,0 +1,132 @@
+order-radius: 5px;
+        }
+        button {
+            width: 100%;
+            padding: 12px;
+            margin-top: 20px;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+        button:hover {
+            background: #5a67d8;
+        }
+        .resultado {
+            margin-top: 20px;
+            padding: 15px;
+            background: #f7fafc;
+            border-radius: 5px;
+            display: none;
+        }
+        .resultado.visible {
+            display: block;
+        }
+        .error {
+            color: red;
+            margin-top: 10px;
+            display: none;
+        }
+        .error.visible {
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>💰 Calculadora de Impuestos</h1>
+        
+        <label>Salario Bruto ($)</label>
+        <input type="number" id="salario" value="1000" step="0.01">
+        
+        <label>Base de Deducción ($)</label>
+        <input type="number" id="deduccion" value="150" step="0.01">
+        
+        <label>Región</label>
+        <select id="region">
+            <option value="SV">🇸🇻 El Salvador</option>
+            <option value="US">🇺🇸 Estados Unidos</option>
+            <option value="MX">🇲🇽 México</option>
+            <option value="GT">🇬🇹 Guatemala</option>
+        </select>
+        
+        <button onclick="calcular()">📊 Calcular</button>
+        
+        <div id="error" class="error"></div>
+        <div id="resultado" class="resultado"></div>
+    </div>
+
+    <script>
+        function calcular() {
+            const salario = parseFloat(document.getElementById('salario').value);
+            const deduccion = parseFloat(document.getElementById('deduccion').value);
+            const region = document.getElementById('region').value;
+            
+            const errorDiv = document.getElementById('error');
+            const resultadoDiv = document.getElementById('resultado');
+            
+            // Validar
+            if (!salario || salario <= 0) {
+                errorDiv.textContent = '❌ Ingresa un salario válido';
+                errorDiv.className = 'error visible';
+                resultadoDiv.className = 'resultado';
+                return;
+            }
+            
+            if (deduccion < 0) {
+                errorDiv.textContent = '❌ La deducción no puede ser negativa';
+                errorDiv.className = 'error visible';
+                resultadoDiv.className = 'resultado';
+                return;
+            }
+            
+            errorDiv.className = 'error';
+            
+            // Configuración de regiones
+            const config = {
+                sv: { nombre: 'El Salvador', porcentaje: 0.15, bono: 13 },
+                us: { nombre: 'Estados Unidos', porcentaje: 0.20, bono: 0 },
+                mx: { nombre: 'México', porcentaje: 0.16, bono: 0 },
+                gt: { nombre: 'Guatemala', porcentaje: 0.12, bono: 0 }
+            };
+            
+            const conf = config[region.toLowerCase()];
+            if (!conf) {
+                errorDiv.textContent = '❌ Región no soportada';
+                errorDiv.className = 'error visible';
+                resultadoDiv.className = 'resultado';
+                return;
+            }
+            
+            // Calcular
+            const descuento = deduccion * conf.porcentaje;
+            let neto = salario - descuento;
+            let bono = 0;
+            
+            if (conf.bono > 0) {
+                neto += conf.bono;
+                bono = conf.bono;
+            }
+            
+            neto = Math.round(neto * 100) / 100;
+            
+            // Mostrar resultado
+            resultadoDiv.innerHTML = `
+                <h3>📋 Resultado - ${conf.nombre}</h3>
+                <p><strong>Salario Bruto:</strong> $${salario}</p>
+                <p><strong>Descuento (${conf.porcentaje * 100}%):</strong> -$${descuento.toFixed(2)}</p>
+                ${bono > 0 ? `<p><strong>Bono Regional:</strong> +$${bono}</p>` : ''}
+                <hr>
+                <h2 style="color: #667eea;">Salario Neto: $${neto}</h2>
+                <p style="font-size: 12px; color: #666;">Fórmula: ${salario} - ${descuento.toFixed(2)} ${bono > 0 ? `+ ${bono}` : ''} = ${neto}</p>
+            `;
+            resultadoDiv.className = 'resultado visible';
+        }
+        
+        // Calcular automáticamente al cargar
+        window.onload = calcular;
+    </script>
+</body>
+</html>
